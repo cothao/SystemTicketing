@@ -5,7 +5,7 @@ import TicketList from './components/TicketList';
 import ChatDialog from './components/ChatDialog';
 import "./App.css"
 
-const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:3001'); // Use environment variable for production
+const socket = io(process.env.REACT_APP_API_URL || 'systemticketing-production.up.railway.app'); // Use environment variable for production
 
 const App = () => {
     const [tickets, setTickets] = useState([]);
