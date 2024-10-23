@@ -8,7 +8,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000", // Allow your React app's origin during development
+        origin: "http://localhost:3000", // Change this to your production URL later
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -17,9 +17,7 @@ const io = new Server(server, {
 // Middleware
 app.use(cors()); // Enable CORS for all routes
 app.use(express.json());
-
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'build'))); // Serve built React files
+app.use(express.static(path.join(__dirname, 'build'))); // Serve static files from the React app
 
 // Socket.io connection
 io.on('connection', (socket) => {

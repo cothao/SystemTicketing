@@ -5,7 +5,7 @@ import TicketList from './components/TicketList';
 import ChatDialog from './components/ChatDialog';
 import "./App.css"
 
-const socket = io('http://localhost:3001'); // Change the URL if needed
+const socket = io(process.env.REACT_APP_API_URL || 'http://localhost:3001'); // Use environment variable for production
 
 const App = () => {
     const [tickets, setTickets] = useState([]);
@@ -23,10 +23,7 @@ const App = () => {
             setTickets((prevTickets) => {
                 const updatedTickets = prevTickets.map((ticket) => {
                     if (ticket.id === ticketId) {
-                        // Check if the message is already present to avoid duplicates
-                        if (!ticket.messages.includes(message)) {
-                            return { ...ticket, messages: [...ticket.messages, message] };
-                        }
+                        return { ...ticket, messages: [...ticket.messages, message] };
                     }
                     return ticket;
                 });
@@ -35,7 +32,7 @@ const App = () => {
                 if (selectedTicket && selectedTicket.id === ticketId) {
                     setSelectedTicket((prev) => ({
                         ...prev,
-                        messages: prev.messages.includes(message) ? prev.messages : [...prev.messages, message],
+                        messages: [...prev.messages, message],
                     }));
                 }
 
@@ -44,30 +41,21 @@ const App = () => {
         });
 
         socket.on('receiveTicket', (ticket) => {
-            const ticketExists = tickets.some(t => t.id === ticket.id);
-            if (!ticketExists) {
-                setTickets((prevTickets) => {
-                    const updatedTickets = [...prevTickets, ticket];
-                    localStorage.setItem('tickets', JSON.stringify(updatedTickets));
-                    return updatedTickets;
-                });
-            }
+            setTickets((prevTickets) => {
+                const updatedTickets = [...prevTickets, ticket];
+                localStorage.setItem('tickets', JSON.stringify(updatedTickets));
+                return updatedTickets;
+            });
         });
 
         return () => {
             socket.off('receiveMessage');
             socket.off('receiveTicket');
         };
-    }, [selectedTicket, tickets]);
+    }, [selectedTicket]);
 
     const addTicket = (ticket) => {
         const newTicket = { ...ticket, id: Date.now(), messages: [] };
-
-        const ticketExists = tickets.some(t => t.title === newTicket.title);
-        if (ticketExists) {
-            alert("This ticket already exists!");
-            return;
-        }
 
         setTickets((prevTickets) => {
             const updatedTickets = [...prevTickets, newTicket];
@@ -96,8 +84,6 @@ const App = () => {
 
         setTickets(updatedTickets);
         localStorage.setItem('tickets', JSON.stringify(updatedTickets));
-
-        // Emit the message to other clients only once
         socket.emit('sendMessage', selectedTicket.id, message);
     };
 
